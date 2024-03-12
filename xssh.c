@@ -155,19 +155,26 @@ void export(char buffer[BUFLEN])
 		//FIXME: if the variable name (in "str") exist in the
 		//varname list (in "varname[j]"), set the flag to be 1
 		//using strcmp()
+			if(!strcmp(varname[j], str)){
+				flag = 1;
+				break;
+			}
         }
         if(flag == 0) //variable name does not exist in the varname list
         {
 		//FIXME: copy the variable name to "varname[varmax]" using strcpy()
+			strcpy(varname[varmax], str);
 		//FIXME: set the corresponding value in "varvalue[varmax]" to empty string '\0'
+			varname[varmax][varmax] = '\0';
 		//FIXME: update the 'varmax' (by +1)
+			varmax += 1;
 		//FIXME: print "-xssh: Export variable str.", where str is newly exported variable name
-		printf("Replace me with code for export W\n");
+			printf("-xssh: Export variable %s.\n", str);
         }
         else //variable name already exists in the varname list
 		{
 		//FIXME: print "-xssh: Existing variable str is value.", where str is newly exported variable name and value is its corresponding value (stored in varvalue list)
-		printf("Replace me with code for export W\n");
+			printf("-xssh: Existing variable %s is %s.\n", varname[j], varvalue[j]);
         }
 }
 

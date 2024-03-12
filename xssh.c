@@ -198,20 +198,26 @@ void unexport(char buffer[BUFLEN])
 		//FIXME: if the variable name (in "str") exist in the
 		//varname list (in "varname[j]"), set the flag to be 1
 		//using strcmp() --- same with export()
+			if(!strcmp(varname[j], str)){
+				flag = 1;
+				break;
+			}
         }
         if(flag == 0) //variable name does not exist in the varname list
         {
 		//FIXME: print "-xssh: Variable str does not exist.",
 		//where str is the variable name to be unexported
-		printf("Replace me with code for unexport W\n");
+			printf("-xssh: Variable %s does not exist.\n", str);
         }
         else //variable name already exists in the varname list
-	{
+		{
 		//FIXME: clear the found variable by setting its
 		//"varname" and "varvalue" both to '\0'
+			varname[j][0] = '\0';
+			varvalue[j][0] = '\0';
 		//FIXME: print "-xssh: Variable str is unexported.",
 		//where str is the variable name to be unexported
-		printf("Replace me with code for unexport W\n");
+			printf("-xssh: Variable %s is unexported.\n", str);
         }
 }
 

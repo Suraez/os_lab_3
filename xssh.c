@@ -243,20 +243,27 @@ void set(char buffer[BUFLEN])
 		//FIXME: if the variable name (in "str") exist in the
 		//varname list (in "varname[j]"), set the flag to be 1
 		//using strcmp() --- same with export()
+		if(!strcmp(varname[j], str)){
+			flag = 1;
+			break;
+		}
 	}
 	if(flag == 0)
 	{
 		//FIXME: print "-xssh: Variable str does not exist.",
 		//where str is the variable name to be unexported
-		printf("Replace me with code for set W1 W2\n");
+		printf("-xssh: Variable %s does not exist.\n", str);
 	}
 	else
 	{
 		//hint: try to print "buffer[i]" to see what's stored there
 		//hint: may need to add '\0' by the end of a string
 		//FIXME: set the corresponding varvalue to be value (in buffer[i]) using strcpy()
-		//FIXME: print "-xssh: Set existing variable str to value.", where str is newly exported variable name and value is its corresponding value (stored in varvalue list)
-		printf("Replace me with code for set W1 W2\n");
+		strcpy(varvalue[j], buffer+i);
+		while (buffer[i] != ' ' && buffer[i] != '\n') i++;
+		varvalue[j][strlen(varvalue[j]) - 1] = '\0';
+		// FIXME: print "-xssh: Set existing variable str to value.", where str is newly exported variable name and value is its corresponding value (stored in varvalue list)
+		printf("-xssh: Set existing variable %s to %s.\n", str, varvalue[j]);
 	}
 }
 

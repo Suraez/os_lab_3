@@ -121,11 +121,7 @@ void show(char buffer[BUFLEN])
 	//FIXME: print the string after "show " in buffer
 	//hint: where is the start of this string?
 	int startingIndex = 5; // staring index of the string we want to print
-	while (buffer[startingIndex] != '\0') { // '\0' is the null terminator for all strings
-		printf("%c", *(buffer+startingIndex)); // so we can use that to loop
-		startingIndex +=1;
-	}
-	printf("\n");
+	printf("%s", buffer+startingIndex);
 }
 
 /*help*/

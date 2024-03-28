@@ -352,12 +352,6 @@ int program(char buffer[BUFLEN])
     		}
     		argv[i] = NULL;
 
-		i = 0;
-		while (argv[i] != NULL){
-			printf("%s\n", argv[i]);
-			i++;
-		}
-
 		if(execvp(argv[0], argv) < 0){
 			printf("-xssh: Unable to execute the instruction %s\n", argv[0]);
 			free(argv);

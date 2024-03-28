@@ -323,26 +323,59 @@ int program(char buffer[BUFLEN])
 
 	pid_t pid;
 	//FIXME: create a new process for executing the external command
-
+	pid = fork();
 	//FIXME: remember to check if the process creation is successful or not. if not, print error message and return -2, see codes below;
-
-
+	if (pid < 0) {
+		printf("-xssh: Unable to create process to execute external command.");
+		return -2;
+	}
 	//FIXME: write the code to execute the external command in the newly created process, using execvp()
 	//hint: the external command is stored in buffer, but before execute it you may need to do some basic validation check or minor changes, depending on how you execute
 	//FIXME: remember to check if the external command is executed successfully; if not, print error message "-xssh: Unable to execute the instruction buffer", where buffer is replaced with the actual external command to be printed
 	//hint: after executing the extenal command using execvp(), you need to return -1;
 	/*for optional exercise, implement stdin/stdout redirection in here*/
+	else if (pid == 0){
+		// printf("Replace me for executing external commands\n");
+		printf("Executing child process.\n");
+		int n = 5;
+    		char** argv = (char**) malloc(n * sizeof(char**));
+	    	char* token = strtok(buffer, " ");
+	    	int i = 0;
+    		while (token != NULL){
+        		argv[i] = token;
+        		token = strtok(NULL, " ");
+        		i++;
+        		if (i == n-1) {
+           	 		n = n + 5;
+            			argv = (char**) realloc(argv, n * sizeof(char**));
+        		}
+    		}
+    		argv[i] = NULL;
 
-	printf("Replace me for executing external commands\n");
-
+		if(execvp(argv[0], argv) < 0){
+			printf("-xssh: Unable to execute the instruction %s\n", argv[0]);
+			free(argv);
+			return -1;
+		}
+		free(argv);
+	}
 	//FIXME: in the xssh process, remember to act differently, based on whether backflag is 0 or 1
 	//hint: the codes below are necessary to support command "wait -1", but you need to put them in the correct place
+	else {
+		backflag = 0;
 		childnum++;
-			childpid = pid;
-			childnum--; //this may or may not be needed, depending on where you put the previous line
+		childpid = pid;
+		wait(childpid);
+		childnum--;
+		sprintf(varvalue[2], "%d\0", pid);
+		return 0;
+	}
+		//childnum++;
+		//	childpid = pid;
+		//	childnum--; //this may or may not be needed, depending on where you put the previous line
 	//hint: the code below is necessary to support command "show $!", but you need to put it in the correct place
-			sprintf(varvalue[2], "%d\0", pid);
-			return 0;
+		//	sprintf(varvalue[2], "%d\0", pid);
+		//	return 0;
 }
 
 /*for optional exercise, implement the function below*/

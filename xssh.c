@@ -112,7 +112,7 @@ int main()
 /*exit I*/
 int xsshexit(char buffer[BUFLEN])
 {
-	return 0;
+	exit(0);
 }
 
 /*show W*/
@@ -121,7 +121,9 @@ void show(char buffer[BUFLEN])
 	//FIXME: print the string after "show " in buffer
 	//hint: where is the start of this string?
 	int startingIndex = 5; // staring index of the string we want to print
-	printf("%s", buffer+startingIndex);
+	if (*(buffer+startingIndex) != '$$' || *(buffer+startingIndex) != '$!') {
+		printf("%s", buffer+startingIndex);
+	}
 }
 
 /*help*/
@@ -161,7 +163,7 @@ void export(char buffer[BUFLEN])
 		//FIXME: copy the variable name to "varname[varmax]" using strcpy()
 			strcpy(varname[varmax], str);
 		//FIXME: set the corresponding value in "varvalue[varmax]" to empty string '\0'
-			varname[varmax][varmax] = '\0';
+			varvalue[varmax][varmax] = '\0';
 		//FIXME: update the 'varmax' (by +1)
 			varmax += 1;
 		//FIXME: print "-xssh: Export variable str.", where str is newly exported variable name
@@ -284,7 +286,7 @@ void waitchild(char buffer[BUFLEN])
 {
 	int i;
 	int start = 5;
-
+	int status;
 	/*store the childpid in pid*/
 	char number[BUFLEN] = {'\0'};
 	while(buffer[start]==' ')start++;
@@ -295,18 +297,26 @@ void waitchild(char buffer[BUFLEN])
         number[i-start] = '\0';
 	char *endptr;
 	int pid = strtol(number, &endptr, 10);
-
 	/*simple check to see if the input is valid or not*/
 	if((*number != '\0')&&(*endptr == '\0'))
 	{
 		//FIXME: if pid is not -1, try to wait the background process pid
 		//FIXME: if successful, print "-xssh: Have finished waiting process pid", where pid is the pid of the background process
 		//FIXME: if not successful, print "-xssh: Unsuccessfully wait the background process pid", where pid is the pid of the background process
-
+			if (pid != -1) {
+				pid_t cpid = waitpid(pid, &status, 0);
+				if (WIFEXITED(status)) {
+					printf("-xssh: Have finished waiting process %d\n", pid);
+				} else {
+					printf("-xssh: Unsuccessfully wait the background process %d\n", pid);
+				}
+			} else {
+				// need to calculate all the background processes
+				printf("-xssh: wait %d background processes\n", childnum);
+			}
 
 		//FIXME: if pid is -1, print "-xssh: wait childnum background processes" where childnum stores the number of background processes, and wait all the background processes
 		//hint: remember to set the childnum correctly after waiting!
-		printf("Replace me for wait P\n");
 
 	}
 	else printf("-xssh: wait: Invalid pid\n");
@@ -365,9 +375,6 @@ int program(char buffer[BUFLEN])
 		backflag = 0;
 		childnum++;
 		childpid = pid;
-		wait(childpid);
-		childnum--;
-		sprintf(varvalue[2], "%d\0", pid);
 		return 0;
 	}
 		//childnum++;

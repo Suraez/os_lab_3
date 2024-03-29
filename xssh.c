@@ -1,3 +1,9 @@
+/*
+* CS 630 - Lab 3 Code Submission
+* Team 2: Suraj Kumar Ojha, Tapan Basak, Rahul Pavithran
+* 
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -22,6 +28,8 @@ char varvalue[BUFLEN][BUFLEN] = {'\0', '\0', '\0'};
 int childnum = 0;
 pid_t childpid = 0;
 pid_t rootpid = 0;
+// Extra - Array to keep track of previous INSNUM child processes. 
+pid_t childpids[INSNUM] = {}; 
 /*current dir*/
 char rootdir[BUFLEN] = "\0";
 
@@ -121,9 +129,7 @@ void show(char buffer[BUFLEN])
 	//FIXME: print the string after "show " in buffer
 	//hint: where is the start of this string?
 	int startingIndex = 5; // staring index of the string we want to print
-	if (*(buffer+startingIndex) != '$$' || *(buffer+startingIndex) != '$!') {
-		printf("%s", buffer+startingIndex);
-	}
+	printf("%s", buffer+startingIndex);
 }
 
 /*help*/
@@ -167,7 +173,7 @@ void export(char buffer[BUFLEN])
 		//FIXME: update the 'varmax' (by +1)
 			varmax += 1;
 		//FIXME: print "-xssh: Export variable str.", where str is newly exported variable name
-			printf("-xssh: Export variable %s.\n", str);
+			printf("-xssh: Exported variable %s.\n", str);
         }
         else //variable name already exists in the varname list
 		{
@@ -304,6 +310,12 @@ void waitchild(char buffer[BUFLEN])
 		//FIXME: if successful, print "-xssh: Have finished waiting process pid", where pid is the pid of the background process
 		//FIXME: if not successful, print "-xssh: Unsuccessfully wait the background process pid", where pid is the pid of the background process
 			if (pid != -1) {
+				// waitpid returns the status of the terminated child in status variable
+				// passed as second argument in the above line of code
+				// if the status is normal exit, if block will execute
+				// in cases of error in proces termination, else block will execute
+				// the third argument 'Options' is set to 0 to make sure that parent process waits
+				// until we have a status of the child
 				pid_t cpid = waitpid(pid, &status, 0);
 				if (WIFEXITED(status)) {
 					printf("-xssh: Have finished waiting process %d\n", pid);
@@ -314,13 +326,14 @@ void waitchild(char buffer[BUFLEN])
 			} else {
 				// need to calculate all the background processes
 				printf("-xssh: wait %d background processes\n", childnum);
-				if (childnum > 0 && childpid > 0) {
-					pid_t cpid = waitpid(childpid, &status, 0);
+				// Extra - While number of child processes is greater than 0, wait each child process
+				while (childnum > 0) {
+					pid_t cpid = waitpid(childpids[childnum-1], &status, 0);
 					if (WIFEXITED(status)) {
-						printf("-xssh: Have finished waiting process %d\n", childpid);
+						printf("-xssh: Have finished waiting process %d\n", childpids[childnum-1]);
 						childnum--;
 					} else {
-						printf("-xssh: Unsuccessfully wait the background process %d\n", childpid);
+						printf("-xssh: Unsuccessfully wait the background process %d\n", childpids[childnum-1]);
 					}
 				}
 			}
@@ -339,7 +352,13 @@ int program(char buffer[BUFLEN])
 	/*if backflag == 1, xssh need to execute the external command in the background*/
 	int backflag = 0;
 	char *ptr = strchr(buffer, '&');
-	if(ptr != NULL) backflag = 1;
+	// Extra - Run command in foreground if backgound process limit is reached.
+	if(ptr != NULL && childnum < (INSNUM - 1)) backflag = 1;
+
+	// Extra - Returning -3 if we have reached the limit of 7 background processes.
+	if (childnum >= (INSNUM-1)) {
+		printf("Number of processes has reached the limit of %d. Running in foreground ...\n", INSNUM);
+	}
 
 	pid_t pid;
 	//FIXME: create a new process for executing the external command
@@ -356,9 +375,8 @@ int program(char buffer[BUFLEN])
 	/*for optional exercise, implement stdin/stdout redirection in here*/
 	else if (pid == 0){
 		// printf("Replace me for executing external commands\n");
-		printf("Executing child process.\n");
-		buffer[strcspn(buffer, "\&\r\n")] = 0;
-		printf("%s\n", buffer);
+		// Remove trailing whitespaces and & flag.
+		buffer[strcspn(buffer, "&\r\n")] = 0;
 		int n = 5;
 		char** argv = (char**) malloc(n * sizeof(char**));
 		char* token = strtok(buffer, " ");
@@ -383,11 +401,13 @@ int program(char buffer[BUFLEN])
 	//FIXME: in the xssh process, remember to act differently, based on whether backflag is 0 or 1
 	//hint: the codes below are necessary to support command "wait -1", but you need to put them in the correct place
 	else {
+		int status;
 		sprintf(varvalue[2], "%d\0", pid);
 		childpid = pid;
+		childpids[childnum] = pid;
 		childnum++;
 		if (backflag == 0) {
-			wait(childpid);
+			waitpid(childpid, &status, 0);
 			childnum--;
 		}
 		return 0;

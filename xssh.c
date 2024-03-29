@@ -372,12 +372,13 @@ int program(char buffer[BUFLEN])
 	//FIXME: in the xssh process, remember to act differently, based on whether backflag is 0 or 1
 	//hint: the codes below are necessary to support command "wait -1", but you need to put them in the correct place
 	else {
-		backflag = 0;
-		childnum++;
-		childpid = pid;
-		wait(childpid);
-		childnum--;
 		sprintf(varvalue[2], "%d\0", pid);
+		childpid = pid;
+		childnum++;
+		if (backflag == 0) {
+			wait(childpid);
+			childnum--;
+		}
 		return 0;
 	}
 		//childnum++;

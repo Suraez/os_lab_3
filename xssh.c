@@ -375,6 +375,9 @@ int program(char buffer[BUFLEN])
 		backflag = 0;
 		childnum++;
 		childpid = pid;
+		wait(childpid);
+		childnum--;
+		sprintf(varvalue[2], "%d\0", pid);
 		return 0;
 	}
 		//childnum++;

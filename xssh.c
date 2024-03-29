@@ -307,12 +307,22 @@ void waitchild(char buffer[BUFLEN])
 				pid_t cpid = waitpid(pid, &status, 0);
 				if (WIFEXITED(status)) {
 					printf("-xssh: Have finished waiting process %d\n", pid);
+					childnum--;
 				} else {
 					printf("-xssh: Unsuccessfully wait the background process %d\n", pid);
 				}
 			} else {
 				// need to calculate all the background processes
 				printf("-xssh: wait %d background processes\n", childnum);
+				if (childnum > 0 && childpid > 0) {
+					pid_t cpid = waitpid(childpid, &status, 0);
+					if (WIFEXITED(status)) {
+						printf("-xssh: Have finished waiting process %d\n", childpid);
+						childnum--;
+					} else {
+						printf("-xssh: Unsuccessfully wait the background process %d\n", childpid);
+					}
+				}
 			}
 
 		//FIXME: if pid is -1, print "-xssh: wait childnum background processes" where childnum stores the number of background processes, and wait all the background processes
@@ -347,27 +357,28 @@ int program(char buffer[BUFLEN])
 	else if (pid == 0){
 		// printf("Replace me for executing external commands\n");
 		printf("Executing child process.\n");
+		buffer[strcspn(buffer, "\&\r\n")] = 0;
+		printf("%s\n", buffer);
 		int n = 5;
-    		char** argv = (char**) malloc(n * sizeof(char**));
-	    	char* token = strtok(buffer, " ");
-	    	int i = 0;
-    		while (token != NULL){
-        		argv[i] = token;
-        		token = strtok(NULL, " ");
-        		i++;
-        		if (i == n-1) {
-           	 		n = n + 5;
-            			argv = (char**) realloc(argv, n * sizeof(char**));
-        		}
-    		}
-    		argv[i] = NULL;
+		char** argv = (char**) malloc(n * sizeof(char**));
+		char* token = strtok(buffer, " ");
+		int i = 0;
+		while (token != NULL){
+			argv[i] = token;
+			token = strtok(NULL, " ");
+			i++;
+			if (i == n-1) {
+				n = n + 5;
+					argv = (char**) realloc(argv, n * sizeof(char**));
+			}
+		}
+		argv[i] = NULL;
 
 		if(execvp(argv[0], argv) < 0){
 			printf("-xssh: Unable to execute the instruction %s\n", argv[0]);
 			free(argv);
 			return -1;
 		}
-		free(argv);
 	}
 	//FIXME: in the xssh process, remember to act differently, based on whether backflag is 0 or 1
 	//hint: the codes below are necessary to support command "wait -1", but you need to put them in the correct place
